@@ -228,12 +228,7 @@ function App() {
         .particle:nth-child(8) { left: 80%; animation-delay: -7s; }
         .particle:nth-child(9) { left: 90%; animation-delay: -8s; }
         
-        /* Marketing hover effects */
-        .glass-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
-          transition: all 0.3s ease;
-        }
+     
         
         /* Mobile responsive */
         @media (max-width: 768px) {

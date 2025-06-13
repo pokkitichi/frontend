@@ -6,7 +6,7 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
   const [name, setName] = useState('');
   const [department, setDepartment] = useState('');
   const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState('');  // เพิ่ม state สำหรับ error
+  const [emailError, setEmailError] = useState('');  // state สำหรับ error
   const [answers, setAnswers] = useState({});
 
   // ฟังก์ชันตรวจสอบรูปแบบอีเมล
@@ -73,7 +73,66 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
       
       {/* Custom Styles */}
       <style>{`
-        /* (เดิมตามโค้ดของคุณ) */
+        /* ตัวอย่าง CSS เบื้องต้น */
+        .gradient-background {
+          min-height: 100vh;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          padding: 3rem 0;
+        }
+
+        .glass-card {
+          background: rgba(255, 255, 255, 0.85);
+          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-radius: 1rem;
+        }
+
+        .text-primary-custom {
+          color: #4b0082;
+        }
+
+        .title-underline {
+          width: 80px;
+          height: 4px;
+          background-color: #4b0082;
+          margin: 0 auto;
+        }
+
+        .progress-custom {
+          height: 14px;
+          background-color: #e0e0e0;
+        }
+
+        .progress-bar {
+          background-color: #4b0082;
+        }
+
+        .question-card {
+          background-color: #f8f9fa;
+          border: 1px solid #ddd;
+        }
+
+        /* ปุ่มสี custom */
+        .btn-primary-custom {
+          background-color: #4b0082;
+          border-color: #4b0082;
+        }
+
+        .btn-primary-custom:hover {
+          background-color: #3a0066;
+          border-color: #3a0066;
+        }
+
+        .btn-success-custom {
+          background-color: #2e7d32;
+          border-color: #2e7d32;
+        }
+
+        .btn-success-custom:hover {
+          background-color: #256625;
+          border-color: #256625;
+        }
       `}</style>
 
       <div className="gradient-background">
@@ -101,11 +160,11 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
 
                 {/* Step 0: Personal Information */}
                 {step === 0 && (
-                  <div className="slide-in">
+                  <div>
                     <h4 className="text-primary-custom mb-4">ข้อมูลส่วนตัว</h4>
                     
                     <div className="mb-3">
-                      <label htmlFor="name" className="form-label fw-semibold">ชื่อ-นามสกุล</label>
+                      <label htmlFor="name" className="form-label fw-semibold">ชื่อ-นามสกุล*</label>
                       <input
                         type="text"
                         className="form-control form-control-lg rounded-3"
@@ -117,7 +176,7 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
                     </div>
 
                     <div className="mb-3">
-                      <label htmlFor="department" className="form-label fw-semibold">หน่วยงาน</label>
+                      <label htmlFor="department" className="form-label fw-semibold">หน่วยงาน*</label>
                       <input
                         type="text"
                         className="form-control form-control-lg rounded-3"
@@ -129,7 +188,7 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
                     </div>
 
                     <div className="mb-4">
-                      <label htmlFor="email" className="form-label fw-semibold">อีเมล</label>
+                      <label htmlFor="email" className="form-label fw-semibold">อีเมล*</label>
                       <input
                         type="email"
                         className={`form-control form-control-lg rounded-3 ${emailError ? 'is-invalid' : ''}`}
@@ -148,7 +207,7 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
 
                 {/* Question Steps */}
                 {step > 0 && step <= questions.length && (
-                  <div className="slide-in">
+                  <div>
                     <h4 className="text-primary-custom mb-4">
                       หัวข้อ {step}: {questions[step - 1].title}
                     </h4>

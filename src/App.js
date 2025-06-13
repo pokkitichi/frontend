@@ -217,6 +217,28 @@ function App() {
             opacity: 0;
           }
         }
+
+        @media screen and (max-width: 768px) {
+  .gradient-background {
+    min-height: 100dvh; /* ป้องกัน jump เมื่อคีย์บอร์ดเปิด */
+    overflow-y: auto;    /* ให้ scroll แทนการกระพริบ */
+    position: static !important; /* ไม่ใช้ absolute บน mobile */
+  }
+
+  input, textarea, select {
+    font-size: 16px !important; /* ป้องกัน zoom บน iOS และทำให้พิมพ์ไม่ lag */
+  }
+
+  .glass-card {
+    animation: none !important; /* ปิด animation ลดกระพริบบน Android */
+    box-shadow: none !important;
+  }
+
+  .particles, .floating-shapes {
+    display: none !important; /* ลด resource animation บนมือถือ */
+  }
+}
+
         
         .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
         .particle:nth-child(2) { left: 20%; animation-delay: -1s; }

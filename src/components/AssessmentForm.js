@@ -83,7 +83,7 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
               <form className="glass-card rounded-4 p-5" onSubmit={handleSubmit}>
                 {/* Header */}
                 <div className="text-center mb-4">
-                  <h2 className="text-primary-custom fw-bold mb-3">แบบสอบถามความพึงพอใจ</h2>
+                  <h2 className="text-primary-custom fw-bold mb-3">12 Dimensions of Life Mastery</h2>
                   <div className="title-underline rounded"></div>
                 </div>
 

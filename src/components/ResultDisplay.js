@@ -93,7 +93,7 @@ function ResultDisplay({ answers = {}, email }) {
       setSending(true);
       setSendResult(null);
       try {
-        const res = await fetch('https://backend-ngel.onrender.com/send-pdf', {
+        const res = await fetch('https://backend-8tpc.onrender.com//send-pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

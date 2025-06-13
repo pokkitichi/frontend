@@ -6,10 +6,9 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
   const [name, setName] = useState('');
   const [department, setDepartment] = useState('');
   const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState('');  // state สำหรับ error
+  const [emailError, setEmailError] = useState('');
   const [answers, setAnswers] = useState({});
 
-  // ฟังก์ชันตรวจสอบรูปแบบอีเมล
   const validateEmail = (value) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!regex.test(value.toLowerCase())) {
@@ -48,10 +47,12 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
       return;
     }
     if (step < questions.length) setStep(step + 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top
   };
 
   const handleBack = () => {
     if (step > 0) setStep(step - 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top
   };
 
   const handleSubmit = (e) => {
@@ -65,15 +66,14 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
 
   return (
     <>
-      {/* Bootstrap CSS */}
+      {/* Bootstrap Icons */}
       <link
-        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
         rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
       />
-      
+
       {/* Custom Styles */}
       <style>{`
-        /* ตัวอย่าง CSS เบื้องต้น */
         .gradient-background {
           min-height: 100vh;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -113,20 +113,39 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
           border: 1px solid #ddd;
         }
 
-        /* ปุ่มสี custom */
         .btn-primary-custom {
-          background-color: #4b0082;
-          border-color: #4b0082;
+          font-weight: 600;
+          color: white;
+          border: none;
         }
 
-        .btn-primary-custom:hover {
-          background-color: #3a0066;
-          border-color: #3a0066;
+        .btn-primary-custom:enabled {
+          background: linear-gradient(to right, #6a11cb, #2575fc);
+          border-color: transparent;
+          color: white;
+          box-shadow: 0 4px 15px rgba(106, 17, 203, 0.4);
+          transition: all 0.3s ease-in-out;
+        }
+
+        .btn-primary-custom:enabled:hover {
+          background: linear-gradient(to right, #5b0eb2, #1c63e2);
+          box-shadow: 0 6px 18px rgba(106, 17, 203, 0.6);
+        }
+
+        .btn-primary-custom:disabled,
+        .btn-primary-custom.disabled {
+          background-color: #ccc !important;
+          border-color: #ccc !important;
+          color: #666 !important;
+          opacity: 0.65;
+          cursor: not-allowed;
+          box-shadow: none;
         }
 
         .btn-success-custom {
           background-color: #2e7d32;
           border-color: #2e7d32;
+          font-weight: 600;
         }
 
         .btn-success-custom:hover {
@@ -158,13 +177,15 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
                   ></div>
                 </div>
 
-                {/* Step 0: Personal Information */}
+                {/* Step 0: Personal Info */}
                 {step === 0 && (
                   <div>
                     <h4 className="text-primary-custom mb-4">ข้อมูลส่วนตัว</h4>
                     
                     <div className="mb-3">
-                      <label htmlFor="name" className="form-label fw-semibold">ชื่อ-นามสกุล*</label>
+                      <label htmlFor="name" className="form-label fw-semibold">
+                        <i className="bi bi-person-circle me-2"></i>ชื่อ-นามสกุล*
+                      </label>
                       <input
                         type="text"
                         className="form-control form-control-lg rounded-3"
@@ -176,7 +197,9 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
                     </div>
 
                     <div className="mb-3">
-                      <label htmlFor="department" className="form-label fw-semibold">หน่วยงาน*</label>
+                      <label htmlFor="department" className="form-label fw-semibold">
+                        <i className="bi bi-building me-2"></i>หน่วยงาน*
+                      </label>
                       <input
                         type="text"
                         className="form-control form-control-lg rounded-3"
@@ -188,7 +211,9 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
                     </div>
 
                     <div className="mb-4">
-                      <label htmlFor="email" className="form-label fw-semibold">อีเมล*</label>
+                      <label htmlFor="email" className="form-label fw-semibold">
+                        <i className="bi bi-envelope-at-fill me-2"></i>อีเมล*
+                      </label>
                       <input
                         type="email"
                         className={`form-control form-control-lg rounded-3 ${emailError ? 'is-invalid' : ''}`}
@@ -249,28 +274,28 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
                       className="btn btn-outline-secondary btn-lg rounded-pill px-4"
                       onClick={handleBack}
                     >
-                      ย้อนกลับ
+                      <i className="bi bi-arrow-left me-2"></i>ย้อนกลับ
                     </button>
                   )}
 
                   {step < questions.length && (
                     <button
                       type="button"
-                      className={`btn btn-primary-custom btn-lg rounded-pill px-4 ms-auto ${!isStepComplete() ? 'disabled' : ''}`}
+                      className="btn btn-primary-custom btn-lg rounded-pill px-4 ms-auto"
                       onClick={handleNext}
                       disabled={!isStepComplete()}
                     >
-                      ถัดไป
+                      ถัดไป <i className="bi bi-arrow-right ms-2"></i>
                     </button>
                   )}
 
                   {step === questions.length && (
                     <button
                       type="submit"
-                      className={`btn btn-success-custom btn-lg rounded-pill px-4 ms-auto ${!isStepComplete() ? 'disabled' : ''}`}
+                      className="btn btn-success-custom btn-lg rounded-pill px-4 ms-auto"
                       disabled={!isStepComplete()}
                     >
-                      ส่งแบบสอบถาม
+                      <i className="bi bi-send-check-fill me-2"></i>ส่งแบบสอบถาม
                     </button>
                   )}
                 </div>

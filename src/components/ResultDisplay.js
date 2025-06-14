@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import questions from '../data/questions';
 import Chart from 'chart.js/auto';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+
+// ต้องลง plugin นี้ด้วย: npm install chartjs-plugin-datalabels
+Chart.register(ChartDataLabels);
 
 function ResultDisplay({ answers = {}, email }) {
   const radarRef = useRef(null);
@@ -9,7 +13,7 @@ function ResultDisplay({ answers = {}, email }) {
   const barChartRef = useRef(null);
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState(null);
-  const hasSentRef = useRef(false); // ✅ ใช้สำหรับกันไม่ให้ส่งซ้ำ
+  const hasSentRef = useRef(false); // กันส่งซ้ำ
 
   useEffect(() => {
     if (!answers || Object.keys(answers).length === 0) return;
@@ -22,8 +26,10 @@ function ResultDisplay({ answers = {}, email }) {
         const value = parseInt(answers[key], 10);
         if (!isNaN(value)) sum += value;
       });
-      return parseFloat((sum / 2.5).toFixed(2)); // สมมุติว่าแต่ละหมวดมี 2 คำถาม
+      return parseFloat((sum / 2.5).toFixed(2)); // สมมุติว่ามี 2 คำถามในแต่ละหมวด
     });
+
+    const averageScore = parseFloat((scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2));
 
     const sortedIndices = scores
       .map((score, i) => ({ score, i }))
@@ -34,6 +40,7 @@ function ResultDisplay({ answers = {}, email }) {
     if (radarChartRef.current) radarChartRef.current.destroy();
     if (barChartRef.current) barChartRef.current.destroy();
 
+    // Radar Chart
     radarChartRef.current = new Chart(radarRef.current, {
       type: 'radar',
       data: {
@@ -59,6 +66,7 @@ function ResultDisplay({ answers = {}, email }) {
       }
     });
 
+    // Bar Chart (with datalabels plugin)
     barChartRef.current = new Chart(barRef.current, {
       type: 'bar',
       data: {
@@ -77,17 +85,37 @@ function ResultDisplay({ answers = {}, email }) {
         scales: {
           x: {
             suggestedMin: 0,
-            suggestedMax: 10
+            suggestedMax: 10,
+            ticks: { stepSize: 1 }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          title: {
+            display: true,
+            text: `Average Score: ${averageScore}`,
+            font: { size: 16, weight: 'bold' },
+            color: '#333',
+            padding: { bottom: 20 }
+          },
+          tooltip: { enabled: false },
+          datalabels: {
+            anchor: 'end',
+            align: 'right',
+            color: '#000',
+            font: { size: 14, weight: 'bold' },
+            formatter: (value) => value.toFixed(1)
           }
         }
-      }
+      },
+      plugins: [ChartDataLabels]
     });
   }, [answers]);
 
   useEffect(() => {
     if (!answers || Object.keys(answers).length === 0 || !email || hasSentRef.current) return;
 
-    hasSentRef.current = true; // ✅ ป้องกันไม่ให้รันซ้ำ
+    hasSentRef.current = true;
 
     const sendPdfToEmail = async () => {
       setSending(true);
@@ -116,10 +144,8 @@ function ResultDisplay({ answers = {}, email }) {
       try {
         await fetch('https://script.google.com/macros/s/AKfycbx9uzHWhlLah-0be-1a09S_Ozg79k8CB0dimyxJc6g1eYPR916cWmqz_rBC8wvf8HIY/exec', {
           method: 'POST',
-          mode: 'no-cors', // ✅ ป้องกัน CORS
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ answers }),
         });
         console.log('✅ ส่งข้อมูลไป Google Sheets แล้ว (no-cors)');

@@ -3,7 +3,6 @@ import questions from '../data/questions';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-// ต้องลง plugin นี้ด้วย: npm install chartjs-plugin-datalabels
 Chart.register(ChartDataLabels);
 
 function ResultDisplay({ answers = {}, email }) {
@@ -13,12 +12,44 @@ function ResultDisplay({ answers = {}, email }) {
   const barChartRef = useRef(null);
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState(null);
-  const hasSentRef = useRef(false); // กันส่งซ้ำ
+  const hasSentRef = useRef(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (!answers || Object.keys(answers).length === 0) return;
 
-    const labels = questions.map((q, index) => `${index + 1}: ${q.title}`);
+    const maxLabelLength = 15;
+
+    // ตัด prefix ออก
+    const cleanTitle = (text) => {
+      const prefix = 'Life Assessment Rubric – ';
+      if (text.startsWith(prefix)) {
+        return text.slice(prefix.length);
+      }
+      return text;
+    };
+
+    // ตัดข้อความยาวเกิน maxLabelLength แล้วเติม ...
+    const shortenText = (text, maxLen = maxLabelLength) => {
+      if (text.length > maxLen) {
+        return text.slice(0, maxLen) + '...';
+      }
+      return text;
+    };
+
+    // สร้าง label แบบสั้นสำหรับ Radar กับ Bar
+    const rawLabels = questions.map(q => cleanTitle(q.title));
+    const shortLabels = rawLabels.map(text => shortenText(text));
+
     const scores = questions.map((q, mainIndex) => {
       let sum = 0;
       q.subQuestions.forEach((_, subIndex) => {
@@ -26,10 +57,12 @@ function ResultDisplay({ answers = {}, email }) {
         const value = parseInt(answers[key], 10);
         if (!isNaN(value)) sum += value;
       });
-      return parseFloat((sum / 2.5).toFixed(2)); // สมมุติว่ามี 2 คำถามในแต่ละหมวด
+      return parseFloat((sum / 2.5).toFixed(2));
     });
 
-    const averageScore = parseFloat((scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2));
+    const averageScore = parseFloat(
+      (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(1)
+    );
 
     const sortedIndices = scores
       .map((score, i) => ({ score, i }))
@@ -40,11 +73,10 @@ function ResultDisplay({ answers = {}, email }) {
     if (radarChartRef.current) radarChartRef.current.destroy();
     if (barChartRef.current) barChartRef.current.destroy();
 
-    // Radar Chart
     radarChartRef.current = new Chart(radarRef.current, {
       type: 'radar',
       data: {
-        labels,
+        labels: shortLabels,
         datasets: [{
           label: 'คะแนน',
           data: scores,
@@ -56,21 +88,40 @@ function ResultDisplay({ answers = {}, email }) {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: 10 },
         scales: {
           r: {
             suggestedMin: 0,
             suggestedMax: 10,
-            ticks: { stepSize: 2 }
+            ticks: { stepSize: 2, font: { size: 10 } },
+            pointLabels: {
+              font: { size: 10 },
+              // label ใช้ shortLabels ที่ตัดแล้ว
+              callback: function(value, index) {
+                return shortLabels[index];
+              }
+            }
           }
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              title: function(context) {
+                const index = context[0].dataIndex;
+                return rawLabels[index]; // แสดงเต็มใน tooltip
+              }
+            }
+          },
+          legend: { labels: { font: { size: 12 } } }
         }
       }
     });
 
-    // Bar Chart (with datalabels plugin)
     barChartRef.current = new Chart(barRef.current, {
       type: 'bar',
       data: {
-        labels,
+        labels: shortLabels,
         datasets: [{
           label: 'คะแนน',
           data: scores,
@@ -81,36 +132,53 @@ function ResultDisplay({ answers = {}, email }) {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         indexAxis: 'y',
+        layout: { padding: 10 },
         scales: {
           x: {
             suggestedMin: 0,
             suggestedMax: 10,
-            ticks: { stepSize: 1 }
+            ticks: { stepSize: 1, font: { size: 10 } }
+          },
+          y: {
+            ticks: {
+              font: { size: 10 },
+              callback: function(value, index) {
+                return shortLabels[index];
+              }
+            }
           }
         },
         plugins: {
           legend: { display: false },
           title: {
             display: true,
-            text: `Average Score: ${averageScore}`,
-            font: { size: 16, weight: 'bold' },
+            text: `Average Score: ${averageScore.toFixed(1)}`,
+            font: { size: 14, weight: 'bold' },
             color: '#333',
-            padding: { bottom: 20 }
+            padding: { bottom: 10 }
           },
-          tooltip: { enabled: false },
+          tooltip: {
+            callbacks: {
+              title: function(context) {
+                const index = context[0].dataIndex;
+                return rawLabels[index];
+              }
+            }
+          },
           datalabels: {
             anchor: 'end',
             align: 'right',
             color: '#000',
-            font: { size: 14, weight: 'bold' },
+            font: { size: 10, weight: 'bold' },
             formatter: (value) => value.toFixed(1)
           }
         }
       },
       plugins: [ChartDataLabels]
     });
-  }, [answers]);
+  }, [answers, isMobile]);
 
   useEffect(() => {
     if (!answers || Object.keys(answers).length === 0 || !email || hasSentRef.current) return;
@@ -168,22 +236,28 @@ function ResultDisplay({ answers = {}, email }) {
         href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
         rel="stylesheet"
       />
-      <div className="container py-4">
+      <div className="container py-4" style={{ maxWidth: '1200px' }}>
         <div className="text-center mb-4">
           <h2 className="fw-bold mb-2">ผลลัพธ์แบบประเมิน</h2>
           <div style={{ width: '80px', height: '4px', background: '#1e3c72', margin: '0 auto' }}></div>
-          {sending && <p className="text-muted">กำลังส่งอีเมล...</p>}
-          {sendResult && <p>{sendResult}</p>}
+          {sending && <p className="text-muted mt-2">กำลังส่งอีเมล...</p>}
+          {sendResult && <p className="mt-2">{sendResult}</p>}
         </div>
 
         <div className="mb-5">
           <h5 className="text-center mb-3">12 Dimensions of Life Mastery (Radar Chart)</h5>
-          <canvas ref={radarRef}></canvas>
-        </div>
+          <div className="d-flex justify-content-center mb-4">
+            <div style={{ width: isMobile ? '100%' : '600px', height: isMobile ? '300px' : '400px' }}>
+              <canvas ref={radarRef} style={{ width: '100%', height: '100%' }} />
+            </div>
+          </div>
 
-        <div>
           <h5 className="text-center mb-3">12 Dimensions of Life Mastery (Bar Chart)</h5>
-          <canvas ref={barRef}></canvas>
+          <div className="d-flex justify-content-center">
+            <div style={{ width: '100%', maxWidth: '700px', height: '450px' }}>
+              <canvas ref={barRef} style={{ width: '100%', height: '100%' }} />
+            </div>
+          </div>
         </div>
       </div>
     </>

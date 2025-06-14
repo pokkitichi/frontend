@@ -1,5 +1,5 @@
 import questions from '../data/questions';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', data) }) => {
   const [step, setStep] = useState(0);
@@ -47,10 +47,12 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
       return;
     }
     if (step < questions.length) setStep(step + 1);
+    window.scrollTo(0, 0); // เลื่อนขึ้นแบบไม่มี animation (no smooth)
   };
 
   const handleBack = () => {
     if (step > 0) setStep(step - 1);
+    window.scrollTo(0, 0); // เลื่อนขึ้นแบบไม่มี animation (no smooth)
   };
 
   const handleSubmit = (e) => {
@@ -62,18 +64,6 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
     onSubmit({ name, department, email, answers });
   };
 
-  // Auto scroll to top on step change
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      const topElement = document.getElementById('form-top');
-      if (topElement) {
-        topElement.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    });
-  }, [step]);
-
   return (
     <>
       {/* Bootstrap Icons */}
@@ -82,7 +72,7 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
         href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
       />
 
-      {/* Styles */}
+      {/* Custom Styles */}
       <style>{`
         .gradient-background {
           min-height: 100vh;
@@ -127,6 +117,8 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
           font-weight: 600;
           color: white;
           border: none;
+          font-size: 0.9rem;
+          padding: 0.375rem 1rem;
         }
 
         .btn-primary-custom:enabled {
@@ -156,11 +148,28 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
           background-color: #2e7d32;
           border-color: #2e7d32;
           font-weight: 600;
+          font-size: 0.9rem;
+          padding: 0.375rem 1rem;
         }
 
         .btn-success-custom:hover {
           background-color: #256625;
           border-color: #256625;
+        }
+
+        .btn-outline-secondary {
+          font-size: 0.9rem;
+          padding: 0.375rem 1rem;
+        }
+
+        @media (max-width: 576px) {
+          .btn-primary-custom,
+          .btn-outline-secondary,
+          .btn-success-custom {
+            font-size: 0.85rem;
+            padding: 0.3rem 0.8rem;
+            min-width: 80px;
+          }
         }
       `}</style>
 
@@ -169,8 +178,6 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
           <div className="row justify-content-center">
             <div className="col-lg-8 col-md-10">
               <form className="glass-card rounded-4 p-5" onSubmit={handleSubmit}>
-                <div id="form-top" />
-                
                 {/* Header */}
                 <div className="text-center mb-4">
                   <h2 className="text-primary-custom fw-bold mb-3">12 Dimensions of Life Mastery</h2>

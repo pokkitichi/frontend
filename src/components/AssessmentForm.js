@@ -1,5 +1,5 @@
 import questions from '../data/questions';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', data) }) => {
   const [step, setStep] = useState(0);
@@ -8,6 +8,16 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [answers, setAnswers] = useState({});
+
+  // Scroll to top whenever step changes
+  useEffect(() => {
+    const topElement = document.getElementById('form-top');
+    if (topElement) {
+      topElement.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [step]);
 
   const validateEmail = (value) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -34,7 +44,6 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
     } else {
       const currentQuestion = questions[step - 1];
       if (!currentQuestion) return false;
-
       return currentQuestion.subQuestions.every((_, idx) =>
         answers.hasOwnProperty(`${step - 1}-${idx}`)
       );
@@ -47,12 +56,10 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
       return;
     }
     if (step < questions.length) setStep(step + 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top
   };
 
   const handleBack = () => {
     if (step > 0) setStep(step - 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top
   };
 
   const handleSubmit = (e) => {
@@ -158,14 +165,12 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-8 col-md-10">
-              <form className="glass-card rounded-4 p-5" onSubmit={handleSubmit}>
-                {/* Header */}
+              <form id="form-top" className="glass-card rounded-4 p-5" onSubmit={handleSubmit}>
                 <div className="text-center mb-4">
                   <h2 className="text-primary-custom fw-bold mb-3">12 Dimensions of Life Mastery</h2>
                   <div className="title-underline rounded"></div>
                 </div>
 
-                {/* Progress Bar */}
                 <div className="progress progress-custom rounded-pill mb-4">
                   <div 
                     className="progress-bar rounded-pill" 
@@ -177,11 +182,10 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
                   ></div>
                 </div>
 
-                {/* Step 0: Personal Info */}
                 {step === 0 && (
                   <div>
                     <h4 className="text-primary-custom mb-4">ข้อมูลส่วนตัว</h4>
-                    
+
                     <div className="mb-3">
                       <label htmlFor="name" className="form-label fw-semibold">
                         <i className="bi bi-person-circle me-2"></i>ชื่อ-นามสกุล*
@@ -230,13 +234,11 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
                   </div>
                 )}
 
-                {/* Question Steps */}
                 {step > 0 && step <= questions.length && (
                   <div>
                     <h4 className="text-primary-custom mb-4">
                       หัวข้อ {step}: {questions[step - 1].title}
                     </h4>
-                    
                     {questions[step - 1].subQuestions.map((subQ, subIndex) => (
                       <div key={subIndex} className="question-card rounded-3 p-4 mb-4">
                         <label className="form-label fw-semibold text-primary-custom mb-3">
@@ -266,7 +268,6 @@ const AssessmentForm = ({ onSubmit = (data) => console.log('Form submitted:', da
                   </div>
                 )}
 
-                {/* Navigation Buttons */}
                 <div className="d-flex justify-content-between mt-4">
                   {step > 0 && (
                     <button

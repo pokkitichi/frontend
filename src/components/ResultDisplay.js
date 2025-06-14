@@ -16,9 +16,7 @@ function ResultDisplay({ answers = {}, email }) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 1024);
-    };
+    const checkMobile = () => setIsMobile(window.innerWidth <= 1024);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -29,26 +27,16 @@ function ResultDisplay({ answers = {}, email }) {
 
     const maxLabelLength = 15;
 
-    // ตัด prefix ออก
     const cleanTitle = (text) => {
       const prefix = 'Life Assessment Rubric – ';
-      if (text.startsWith(prefix)) {
-        return text.slice(prefix.length);
-      }
-      return text;
+      return text.startsWith(prefix) ? text.slice(prefix.length) : text;
     };
 
-    // ตัดข้อความยาวเกิน maxLabelLength แล้วเติม ...
-    const shortenText = (text, maxLen = maxLabelLength) => {
-      if (text.length > maxLen) {
-        return text.slice(0, maxLen) + '...';
-      }
-      return text;
-    };
+    const shortenText = (text) =>
+      text.length > maxLabelLength ? text.slice(0, maxLabelLength) + '...' : text;
 
-    // สร้าง label แบบสั้นสำหรับ Radar กับ Bar
-    const rawLabels = questions.map(q => cleanTitle(q.title));
-    const shortLabels = rawLabels.map(text => shortenText(text));
+    const rawLabels = questions.map((q) => cleanTitle(q.title));
+    const shortLabels = rawLabels.map(shortenText);
 
     const scores = questions.map((q, mainIndex) => {
       let sum = 0;
@@ -68,23 +56,23 @@ function ResultDisplay({ answers = {}, email }) {
       .map((score, i) => ({ score, i }))
       .sort((a, b) => a.score - b.score)
       .slice(0, 3)
-      .map(o => o.i);
+      .map((o) => o.i);
 
     if (radarChartRef.current) radarChartRef.current.destroy();
     if (barChartRef.current) barChartRef.current.destroy();
 
+    // Radar Chart - no datalabels
     radarChartRef.current = new Chart(radarRef.current, {
       type: 'radar',
       data: {
         labels: shortLabels,
         datasets: [{
-          label: 'คะแนน',
           data: scores,
           fill: true,
           backgroundColor: 'rgba(54, 162, 235, 0.2)',
           borderColor: 'rgba(54, 162, 235, 1)',
-          pointBackgroundColor: 'rgba(54, 162, 235, 1)'
-        }]
+          pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+        }],
       },
       options: {
         responsive: true,
@@ -94,41 +82,39 @@ function ResultDisplay({ answers = {}, email }) {
           r: {
             suggestedMin: 0,
             suggestedMax: 10,
-            ticks: { stepSize: 2, font: { size: 10 } },
+            ticks: {
+              stepSize: 2,
+              display: false, // ❌ ซ่อนตัวเลขรอบวง
+              font: { size: 10 },
+            },
             pointLabels: {
               font: { size: 10 },
-              // label ใช้ shortLabels ที่ตัดแล้ว
-              callback: function(value, index) {
-                return shortLabels[index];
-              }
-            }
-          }
+              callback: (_, index) => shortLabels[index],
+            },
+          },
         },
         plugins: {
-          tooltip: {
-            callbacks: {
-              title: function(context) {
-                const index = context[0].dataIndex;
-                return rawLabels[index]; // แสดงเต็มใน tooltip
-              }
-            }
-          },
-          legend: { labels: { font: { size: 12 } } }
-        }
-      }
+          tooltip: { enabled: false }, // ❌ ปิด tooltip ตอน hover
+          legend: { display: false },
+          datalabels: { display: false }, // ❌ ปิด datalabels (สำคัญ)
+        },
+      },
+      plugins: [], // ✅ ไม่ใส่ ChartDataLabels ที่นี่
     });
 
+
+    // Bar Chart - show datalabels
     barChartRef.current = new Chart(barRef.current, {
       type: 'bar',
       data: {
         labels: shortLabels,
         datasets: [{
-          label: 'คะแนน',
+          label: '',
           data: scores,
           backgroundColor: scores.map((_, i) =>
             sortedIndices.includes(i) ? 'rgba(255, 99, 132, 0.7)' : 'rgba(0, 123, 255, 0.7)'
-          )
-        }]
+          ),
+        }],
       },
       options: {
         responsive: true,
@@ -139,16 +125,14 @@ function ResultDisplay({ answers = {}, email }) {
           x: {
             suggestedMin: 0,
             suggestedMax: 10,
-            ticks: { stepSize: 1, font: { size: 10 } }
+            ticks: { stepSize: 1, font: { size: 10 } },
           },
           y: {
             ticks: {
               font: { size: 10 },
-              callback: function(value, index) {
-                return shortLabels[index];
-              }
-            }
-          }
+              callback: (_, index) => shortLabels[index],
+            },
+          },
         },
         plugins: {
           legend: { display: false },
@@ -157,34 +141,31 @@ function ResultDisplay({ answers = {}, email }) {
             text: `Average Score: ${averageScore.toFixed(1)}`,
             font: { size: 14, weight: 'bold' },
             color: '#333',
-            padding: { bottom: 10 }
+            padding: { bottom: 10 },
           },
           tooltip: {
             callbacks: {
-              title: function(context) {
-                const index = context[0].dataIndex;
-                return rawLabels[index];
-              }
-            }
+              title: (context) => rawLabels[context[0].dataIndex],
+            },
           },
           datalabels: {
+            display: true,
+            align: 'end',
             anchor: 'end',
-            align: 'right',
             color: '#000',
-            font: { size: 10, weight: 'bold' },
-            formatter: (value) => value.toFixed(1)
-          }
-        }
+            font: { size: 10 },
+            formatter: (val) => val,
+          },
+        },
       },
-      plugins: [ChartDataLabels]
+      plugins: [ChartDataLabels],
     });
   }, [answers, isMobile]);
 
   useEffect(() => {
-    if (!answers || Object.keys(answers).length === 0 || !email || hasSentRef.current) return;
+    if (!answers || !email || hasSentRef.current) return;
 
     hasSentRef.current = true;
-
     const sendPdfToEmail = async () => {
       setSending(true);
       setSendResult(null);
